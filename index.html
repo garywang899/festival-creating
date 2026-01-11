@@ -9,28 +9,43 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3893/3893043.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans SC', sans-serif; background-color: #f8fafc; margin: 0; }
-        #loading-indicator {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; width: 100vw; position: fixed; top: 0; left: 0;
-            z-index: 9999; background: white; transition: opacity 0.5s ease-out;
+        #root:empty::before {
+            content: "正在启动 AI 引擎...";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #64748b;
+            font-size: 14px;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* 备用强制重载按钮，默认隐藏 */
+        #force-start {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: #dc2626;
+            color: white;
+            border-radius: 99px;
+            font-size: 12px;
+            z-index: 10001;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
     </style>
     <script>
         window.process = { env: { API_KEY: "" }, nextTick: (cb) => setTimeout(cb, 0), browser: true };
-
-        // 逃生机制：如果 5 秒后还没加载成功，强制关闭加载屏
+        // 如果 6 秒后还是空白，显示手动刷新按钮
         setTimeout(() => {
-            const loading = document.getElementById('loading-indicator');
-            if (loading && loading.style.display !== 'none') {
-                console.warn('Loading timeout - forcing app visibility');
-                loading.style.opacity = '0';
-                setTimeout(() => { loading.style.display = 'none'; }, 500);
+            const root = document.getElementById('root');
+            if (root && root.innerHTML === "") {
+                document.getElementById('force-start').style.display = 'block';
             }
-        }, 5000);
+        }, 6000);
     </script>
     <script type="importmap">
 {
@@ -46,11 +61,8 @@
 </script>
 </head>
 <body>
-    <div id="loading-indicator">
-        <div style="width: 40px; height: 40px; border: 3px solid #f1f5f9; border-top: 3px solid #dc2626; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-        <p style="margin-top: 1rem; font-size: 14px; color: #64748b; font-weight: 500;">正在加载 AI 祝福引擎...</p>
-    </div>
     <div id="root"></div>
+    <button id="force-start" onclick="location.reload()">加载过慢？点击刷新页面</button>
     <script type="module" src="index.tsx"></script>
 </body>
 </html>
