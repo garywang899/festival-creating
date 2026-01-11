@@ -7,28 +7,34 @@
     <title>企业节日祝福生成器</title>
     
     <script>
-        // 核心运行状态监控
+        // 核心标志位：用于检测脚本是否成功运行
         window.APP_STARTED = false;
 
-        // 强力重置函数：清除所有可能导致死锁的本地存储并强制带参数刷新
+        // 强力重置：清除缓存并强制带随机数刷新，防止浏览器固执地加载旧的错误脚本
         function forceReset() {
+            console.log("执行强力重置...");
             localStorage.clear();
             sessionStorage.clear();
-            // 通过添加 unique 随机数，强制浏览器忽略所有旧的缓存版本
-            const cleanUrl = window.location.origin + window.location.pathname + '?reset=' + Date.now();
+            const cleanUrl = window.location.origin + window.location.pathname + '?v=' + Date.now();
             window.location.replace(cleanUrl);
         }
 
-        // 容错检测：如果模块脚本在 8 秒内没有将 APP_STARTED 设为 true，说明加载链断裂了
+        // 容错监控：如果 8 秒内脚本没跑起来，就显示重置界面
         setTimeout(() => {
             if (!window.APP_STARTED) {
+                console.warn("应用启动超时，显示引导界面");
                 const errDiv = document.getElementById('load-error');
                 if(errDiv) errDiv.style.display = 'flex';
             }
         }, 8000);
+
+        // 监听全局错误，方便调试
+        window.addEventListener('error', function(e) {
+            console.error('浏览器检测到脚本错误:', e.message);
+        });
     </script>
 
-    <!-- 严禁修改：这是唯一的正确导入映射，没有任何冗余冲突 -->
+    <!-- 唯一正确的导入映射：严禁包含重复项或带斜杠的路径 -->
     <script type="importmap">
 {
   "imports": {
@@ -62,24 +68,24 @@
 <body>
     <div id="root"></div>
 
-    <!-- 当环境冲突时显示的引导界面 -->
+    <!-- 引导界面：仅在浏览器加载脚本失败时出现 -->
     <div id="load-error">
         <div class="mb-6 text-6xl">🛠️</div>
-        <h2 class="text-2xl font-black text-gray-900 mb-2">检测到旧版配置冲突</h2>
+        <h2 class="text-2xl font-black text-gray-900 mb-2">正在清理旧版配置</h2>
         <p class="text-gray-500 text-sm mb-8 max-w-xs leading-relaxed">
-            由于您之前运行过含有冲突代码的版本，浏览器需要一次“强力重置”来应用最新的修正。
+            检测到您之前的浏览器缓存中存有冲突代码。请点击下方按钮，系统将为您同步最新的无冲突版本。
         </p>
         <div class="w-full max-w-xs">
             <button onclick="forceReset()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black shadow-xl active:scale-95 transition-all">
-                清理冲突缓存并进入
+                清理冲突缓存并重启应用
             </button>
-            <p class="mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                Force Reset & Reload System
+            <p class="mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center">
+                Syncing Latest Clean Code...
             </p>
         </div>
     </div>
 
-    <!-- 启动脚本 -->
+    <!-- 入口脚本 -->
     <script type="module" src="index.tsx"></script>
 </body>
 </html>
