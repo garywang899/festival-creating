@@ -17,33 +17,36 @@
             position: fixed;
             top: 0; left: 0; right: 0;
             background: #fee2e2; color: #b91c1c;
-            padding: 1.5rem; z-index: 10000;
-            font-size: 14px; border-bottom: 4px solid #ef4444;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            padding: 1rem; z-index: 10000;
+            font-size: 13px; border-bottom: 2px solid #ef4444;
+            text-align: center;
         }
         #loading-indicator {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             height: 100vh; width: 100vw; position: fixed; top: 0; left: 0;
-            z-index: 9999; background: white; transition: opacity 0.4s ease-out;
+            z-index: 9999; background: white; transition: opacity 0.5s ease-out;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
     <script>
-        // 环境补丁
+        // 初始化基础环境
         window.process = { env: { API_KEY: "" }, nextTick: (cb) => setTimeout(cb, 0), browser: true };
 
-        const showError = (msg, details = "") => {
+        window.showError = (msg) => {
             const display = document.getElementById('error-display');
             if (display) {
                 display.style.display = 'block';
-                display.innerHTML = `<strong>系统启动异常:</strong><br>${msg}${details ? '<br><small>' + details + '</small>' : ''}<br><p style="margin-top:10px text-xs opacity-75">提示：如果应用 UI 已经出现，请忽略此提示或刷新页面。</p>`;
+                display.innerText = msg;
             }
         };
 
-        window.onerror = (msg, url, line, col, error) => {
-            // 忽略非核心的资源错误
-            if (msg.toLowerCase().includes('extension') || msg.toLowerCase().includes('script error')) return false;
-            showError("环境运行异常", msg);
+        // 全局捕获异常，但忽略一些无关紧要的插件错误
+        window.onerror = (msg) => {
+            if (msg.includes('extension') || msg.includes('ResizeObserver')) return false;
+            // 仅在 root 为空时显示，防止应用正常运行时弹出错误
+            if (!document.getElementById('root')?.innerHTML) {
+                window.showError("应用启动中遇到问题: " + msg);
+            }
             return false;
         };
     </script>
@@ -63,10 +66,11 @@
 <body>
     <div id="error-display"></div>
     <div id="loading-indicator">
-        <div style="width: 50px; height: 50px; border: 4px solid #f1f5f9; border-top: 4px solid #dc2626; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-        <p style="margin-top: 1.5rem; font-weight: bold; color: #1e293b;">祝福助手启动中...</p>
+        <div style="width: 40px; height: 40px; border: 3px solid #f1f5f9; border-top: 3px solid #dc2626; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+        <p style="margin-top: 1rem; font-size: 14px; color: #64748b;">正在加载 AI 引擎...</p>
     </div>
     <div id="root"></div>
-    <script type="module" src="index.tsx" onerror="showError('主程序加载失败', '无法读取 index.tsx 文件。请检查网络后刷新。')"></script>
+    <!-- 移除 onerror 属性，由 index.tsx 内部逻辑接管状态 -->
+    <script type="module" src="index.tsx"></script>
 </body>
 </html>
