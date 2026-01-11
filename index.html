@@ -33,7 +33,7 @@
             font-size: 14px;
             white-space: pre-wrap;
             border-bottom: 4px solid #ef4444;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
         }
         #loading-indicator {
             display: flex;
@@ -41,25 +41,35 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            color: #dc2626;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
             background: white;
+            transition: opacity 0.5s ease-out;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
     <script>
-        // 关键补丁：模拟 process 对象，防止模块加载时崩溃
-        window.process = { env: { API_KEY: "" } };
+        // 环境补丁：必须在任何模块加载前运行
+        window.process = { 
+            env: { API_KEY: "" },
+            nextTick: (cb) => setTimeout(cb, 0),
+            browser: true
+        };
 
-        // 捕获启动阶段的任何错误
         window.onerror = function(msg, url, line, col, error) {
-            console.error('Global error:', msg, error);
+            console.error('Fatal:', msg, error);
             const display = document.getElementById('error-display');
             if (display) {
                 display.style.display = 'block';
-                display.innerHTML = `<strong>应用运行出错:</strong><br>${msg}<br><small>文件: ${url?.split('/').pop()} 行: ${line}</small><br><p style="margin-top:10px">提示：请尝试刷新页面。如果持续出错，请检查 API 密钥配置。</p>`;
+                display.innerHTML = `<strong>应用运行出错:</strong><br>${msg}<br><small>出错位置: ${url?.split('/').pop() || '未知文件'} 第 ${line} 行</small><br><p style="margin-top:10px; font-weight: bold;">[点击页面任意位置尝试强制刷新]</p>`;
+                display.onclick = () => window.location.reload(true);
             }
             const loading = document.getElementById('loading-indicator');
-            if (loading) loading.style.display = 'none';
+            if (loading) loading.style.opacity = '0';
+            setTimeout(() => { if (loading) loading.style.display = 'none'; }, 500);
             return false;
         };
     </script>
@@ -78,24 +88,24 @@
 </head>
 <body>
     <div id="error-display"></div>
-    <div id="root">
-        <div id="loading-indicator">
-            <div style="width: 48px; height: 48px; border: 5px solid #f3f3f3; border-top: 5px solid #dc2626; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <p style="margin-top: 1.5rem; font-weight: 800; letter-spacing: 1px;">正在启动祝福助手...</p>
-            <p style="margin-top: 0.5rem; font-size: 12px; color: #94a3b8;">正在加载 AI 模型环境</p>
-        </div>
+    <div id="loading-indicator">
+        <div style="width: 54px; height: 54px; border: 5px solid #f1f5f9; border-top: 5px solid #dc2626; border-radius: 50%; animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div>
+        <p style="margin-top: 1.5rem; font-weight: 800; color: #1e293b; font-size: 1.1rem; letter-spacing: 1px;">正在启动祝福助手...</p>
+        <p style="margin-top: 0.5rem; font-size: 13px; color: #94a3b8; font-weight: 500;">首次加载可能需要较长时间</p>
     </div>
+    
+    <div id="root"></div>
     
     <script type="module" src="index.tsx"></script>
 
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('SW Registered'))
-            .catch(err => console.warn('SW Registration failed', err));
-        });
-      }
+      // 这里的逻辑作为兜底：如果模块系统在 10 秒内没能完成加载，尝试提示用户
+      setTimeout(() => {
+          const loading = document.getElementById('loading-indicator');
+          if (loading && loading.style.display !== 'none') {
+              console.warn('Startup taking longer than expected...');
+          }
+      }, 10000);
     </script>
 </body>
 </html>
