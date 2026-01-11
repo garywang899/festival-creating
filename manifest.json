@@ -3,9 +3,9 @@
   "name": "节日祝福生成器",
   "short_name": "节日祝福",
   "description": "专为企业行政人员打造的节日祝福生成工具。",
-  "start_url": "./index.html",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#f8fafc",
   "theme_color": "#dc2626",
   "icons": [
     {
