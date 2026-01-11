@@ -6,8 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#dc2626">
     <title>节日祝福生成器</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3893/3893043.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -22,22 +20,52 @@
             font-size: 14px;
             font-weight: bold;
         }
-        #error-display {
+        #load-error {
             display: none;
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            inset: 0;
             background: white;
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            z-index: 10000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
             text-align: center;
-            z-index: 9999;
-            width: 90%;
-            max-width: 400px;
         }
     </style>
+    <script>
+        // 环境补丁：防止 SDK 报错
+        window.process = window.process || { env: { API_KEY: "" } };
+        
+        // 全局错误捕获
+        window.onerror = function(msg, url, line) {
+            console.error("Critical Error:", msg, "at", url, ":", line);
+            document.getElementById('load-error').style.display = 'flex';
+            return false;
+        };
+
+        // 超时检测
+        setTimeout(() => {
+            if (!window.APP_STARTED) {
+                document.getElementById('load-error').style.display = 'flex';
+            }
+        }, 6000);
+
+        // 强力刷新：清除所有缓存
+        function forceReset() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                    for(let reg of regs) reg.unregister();
+                });
+            }
+            caches.keys().then(keys => {
+                keys.forEach(key => caches.delete(key));
+            });
+            localStorage.clear();
+            sessionStorage.clear();
+            location.reload(true);
+        }
+    </script>
     <script type="importmap">
 {
   "imports": {
@@ -50,24 +78,18 @@
   }
 }
 </script>
-    <script>
-        // 监控加载状态
-        setTimeout(() => {
-            const root = document.getElementById('root');
-            if (root && root.innerHTML === "") {
-                document.getElementById('error-display').style.display = 'block';
-            }
-        }, 8000);
-    </script>
 </head>
 <body>
     <div id="root"></div>
-    
-    <div id="error-display">
-        <div class="text-red-500 mb-4 text-4xl">⚠️</div>
-        <h3 class="text-lg font-bold text-gray-900 mb-2">启动时间过长</h3>
-        <p class="text-gray-500 text-sm mb-6">这通常是由于网络无法连接到 AI 服务库导致的。</p>
-        <button onclick="location.reload()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold">尝试重新加载</button>
+
+    <div id="load-error">
+        <div class="text-red-500 mb-6 text-5xl">⚙️</div>
+        <h2 class="text-xl font-bold text-gray-900 mb-2">引擎启动受阻</h2>
+        <p class="text-gray-500 text-sm mb-8 max-w-xs">由于网络波动或浏览器旧缓存干扰，AI 服务未能及时响应。</p>
+        <button onclick="forceReset()" class="w-full max-w-xs bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black shadow-xl transition-all active:scale-95">
+            清除缓存并强制重启
+        </button>
+        <p class="mt-4 text-xs text-gray-400">重启后将重新下载最新的 AI 模块</p>
     </div>
 
     <script type="module" src="index.tsx"></script>
