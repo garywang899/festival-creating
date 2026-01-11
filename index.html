@@ -7,26 +7,25 @@
     <title>企业节日祝福全案生成器</title>
     
     <script>
-        // 1. 核心状态初始化
+        // 1. 初始化核心环境变量
         window.process = { env: { API_KEY: "" } };
         window.APP_STARTED = false;
 
-        // 强力重置函数
+        // 强力重置：清除所有缓存并强制加载当前页面
         function forceReset() {
             localStorage.clear();
             sessionStorage.clear();
-            // 通过注入随机参数强制穿透所有级别的缓存
-            const url = new URL(window.location.href);
-            url.searchParams.set('v', Date.now().toString());
-            window.location.replace(url.toString());
+            // 注入时间戳，强制浏览器跳过所有旧的缓存脚本
+            const cleanUrl = window.location.origin + window.location.pathname + '?v=' + Date.now();
+            window.location.replace(cleanUrl);
         }
 
         function runDiagnostic() {
             const status = window.APP_STARTED ? "✅ 已启动" : "❌ 未响应";
-            alert(`【深度运行诊断】\n当前状态: ${status}\n\n解决办法：\n请点击页面上的红色“清理冲突缓存”按钮。`);
+            alert(`【运行诊断】\n当前状态: ${status}\n\n解决办法：\n点击页面上的红色“清理冲突缓存并重启”按钮。`);
         }
 
-        // 10秒超时自动检测
+        // 10秒超时检测：如果 10 秒内 index.tsx 没把 APP_STARTED 设为 true，说明脚本加载死锁了
         setTimeout(() => {
             if (!window.APP_STARTED) {
                 const errDiv = document.getElementById('load-error');
@@ -35,7 +34,7 @@
         }, 10000);
     </script>
 
-    <!-- 2. 绝对干净、唯一的导入映射（严禁任何带斜杠的重复路径） -->
+    <!-- 2. 干净的导入映射：严禁包含任何带斜杠的冗余项 -->
     <script type="importmap">
 {
   "imports": {
@@ -70,19 +69,19 @@
     <div id="root"></div>
 
     <div id="load-error">
-      <div class="mb-6 text-6xl">🚀</div>
-      <h2 class="text-2xl font-black text-gray-900 mb-2">系统已就绪，等待刷新</h2>
-      <p class="text-gray-500 text-sm mb-8 max-w-xs leading-relaxed">
-        新版代码已下发。如果您之前由于缓存原因卡在了“未响应”状态，请点击下方按钮。
-      </p>
-      <div class="w-full max-w-xs space-y-3">
-        <button onclick="forceReset()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black shadow-xl active:scale-95 transition-all">
-          清理冲突缓存并进入
-        </button>
-        <button onclick="runDiagnostic()" class="w-full bg-slate-100 text-slate-600 py-3 rounded-2xl font-bold text-sm">
-          查看运行诊断
-        </button>
-      </div>
+        <div class="mb-6 text-6xl">🛠️</div>
+        <h2 class="text-2xl font-black text-gray-900 mb-2">检测到环境冲突</h2>
+        <p class="text-gray-500 text-sm mb-8 max-w-xs leading-relaxed">
+            由于浏览器缓存了旧版本的冲突配置，导致系统无法启动。请点击下方按钮强制同步最新代码。
+        </p>
+        <div class="w-full max-w-xs space-y-3">
+            <button onclick="forceReset()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black shadow-xl active:scale-95 transition-all">
+                清理冲突缓存并重启
+            </button>
+            <button onclick="runDiagnostic()" class="w-full bg-slate-100 text-slate-600 py-3 rounded-2xl font-bold text-sm">
+                查看运行诊断
+            </button>
+        </div>
     </div>
 
     <!-- 3. 入口脚本 -->
