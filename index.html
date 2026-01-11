@@ -5,72 +5,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#dc2626">
-    <title>企业节日祝福全案生成器</title>
+    <title>企业节日祝福生成器</title>
     
     <script>
-        // 1. 基础环境与状态监控
+        // 1. 基础环境注入
         window.process = { env: { API_KEY: "" } };
         window.APP_STARTED = false;
-        window.BOOT_LOG = ["系统初始化中..."];
 
-        function log(msg) {
-            console.log("[引导程序]", msg);
-            window.BOOT_LOG.push(new Date().toLocaleTimeString() + ": " + msg);
-        }
-
-        // 捕捉全局加载错误（包括资源加载失败）
-        window.addEventListener('error', function(e) {
-            log("加载错误: " + (e.message || "资源加载失败") + " 于 " + (e.filename || "未知位置"));
-        }, true);
-
-        // 强力重置：清除缓存并强刷页面
+        // 强力刷新：带上随机参数跳过所有缓存
         function forceReset() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(regs => {
-                    for(let reg of regs) reg.unregister();
-                });
-            }
             localStorage.clear();
             sessionStorage.clear();
-            // 使用随机参数防止浏览器缓存旧的 HTML
-            window.location.replace(window.location.origin + window.location.pathname + '?r=' + Date.now());
+            const cleanUrl = window.location.origin + window.location.pathname + '?v=' + Date.now();
+            window.location.replace(cleanUrl);
         }
 
-        // 网络连通性快速诊断
-        async function testNetwork() {
-            const targets = [
-                { name: "React 核心 (esm.sh)", url: "https://esm.sh/react@19.0.0" },
-                { name: "AI SDK (esm.sh)", url: "https://esm.sh/@google/genai@1.3.0" }
-            ];
-            let report = "【网络连通性测试】\n\n";
-            for (const t of targets) {
-                try {
-                    const start = Date.now();
-                    // 仅测试头部，不下载完整内容
-                    await fetch(t.url, { method: 'HEAD', mode: 'no-cors' });
-                    report += `✅ ${t.name}: 连接成功 (${Date.now() - start}ms)\n`;
-                } catch (e) {
-                    report += `❌ ${t.name}: 连接失败 (请检查 VPN 或网络代理)\n`;
-                }
-            }
-            alert(report + "\n提示：如果测试全部成功但仍卡住，请尝试更换 Chrome 浏览器。");
-        }
-
-        function showDebug() {
-            alert("【详细启动日志】\n\n" + window.BOOT_LOG.join("\n"));
-        }
-
-        // 启动超时监控 (延长至 15 秒)
+        // 超时检测
         setTimeout(() => {
             if (!window.APP_STARTED) {
-                log("启动超时 (15s)");
                 const errDiv = document.getElementById('load-error');
                 if(errDiv) errDiv.style.display = 'flex';
             }
-        }, 15000);
+        }, 12000);
     </script>
 
-    <!-- 2. 严格的 Import Map：移除所有版本冲突 -->
+    <!-- 2. 干净的导入映射：只保留一组版本，严禁重复 -->
     <script type="importmap">
 {
   "imports": {
@@ -89,7 +48,7 @@
     <style>
         body { font-family: 'Noto Sans SC', sans-serif; background: #f8fafc; margin: 0; }
         #root:empty::before {
-            content: "正在启动 AI 引擎...";
+            content: "正在唤醒 AI 引擎...";
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             color: #94a3b8; font-size: 14px; font-weight: bold;
             animation: pulse 2s infinite;
@@ -104,34 +63,22 @@
 <body>
     <div id="root"></div>
 
+    <!-- 加载超时后的备选方案 -->
     <div id="load-error">
-        <div class="mb-6 text-6xl animate-bounce">📡</div>
-        <h2 class="text-xl font-black text-gray-900 mb-2">资源加载遇阻</h2>
+        <div class="mb-6 text-6xl">🚀</div>
+        <h2 class="text-xl font-black text-gray-900 mb-2">资源初始化中</h2>
         <p class="text-gray-500 text-sm mb-8 max-w-xs">
-            由于 AI 模块部署在海外节点，下载可能被您的防火墙或广告拦截插件阻断。
+            由于 AI 模块部署在国际节点，首次加载可能较慢。如果卡住超过 30 秒，请点击下方按钮。
         </p>
-        <div class="w-full max-w-xs space-y-3">
-            <button onclick="forceReset()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black shadow-xl active:scale-95 transition-all">
-                清理缓存并重试
-            </button>
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="testNetwork()" class="bg-slate-100 text-slate-600 py-3 rounded-2xl font-bold text-xs">
-                    网络诊断
-                </button>
-                <button onclick="showDebug()" class="bg-slate-100 text-slate-600 py-3 rounded-2xl font-bold text-xs">
-                    运行日志
-                </button>
-            </div>
-        </div>
-        <p class="mt-8 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-            建议：尝试关闭广告拦截插件或使用手机热点
+        <button onclick="forceReset()" class="w-full max-w-xs bg-red-600 text-white py-4 rounded-2xl font-black shadow-xl active:scale-95 transition-all">
+            清理缓存并强制重启
+        </button>
+        <p class="mt-8 text-[10px] text-gray-400 font-bold">
+            建议：确保已关闭所有广告拦截插件
         </p>
     </div>
 
     <!-- 3. 入口脚本 -->
-    <script type="module">
-        import "./index.tsx";
-        if (window.BOOT_LOG) window.BOOT_LOG.push("入口模块已触发加载。");
-    </script>
+    <script type="module" src="./index.tsx"></script>
 </body>
 </html>
