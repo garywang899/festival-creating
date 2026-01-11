@@ -21,31 +21,31 @@
             color: #64748b;
             font-size: 14px;
         }
-        /* 备用强制重载按钮，默认隐藏 */
-        #force-start {
+        #error-overlay {
             display: none;
             position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            background: #dc2626;
-            color: white;
-            border-radius: 99px;
-            font-size: 12px;
-            z-index: 10001;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            inset: 0;
+            background: white;
+            z-index: 10002;
+            padding: 20px;
+            color: #ef4444;
+            font-family: monospace;
+            overflow: auto;
         }
     </style>
     <script>
+        // 设置全局环境变量
         window.process = { env: { API_KEY: "" }, nextTick: (cb) => setTimeout(cb, 0), browser: true };
-        // 如果 6 秒后还是空白，显示手动刷新按钮
-        setTimeout(() => {
-            const root = document.getElementById('root');
-            if (root && root.innerHTML === "") {
-                document.getElementById('force-start').style.display = 'block';
+        
+        // 捕获全局错误
+        window.onerror = function(msg, url, line, col, error) {
+            const overlay = document.getElementById('error-overlay');
+            if (overlay) {
+                overlay.style.display = 'block';
+                overlay.innerHTML = `<h3>加载出错:</h3><p>${msg}</p><small>${url}:${line}</small>`;
             }
-        }, 6000);
+            return false;
+        };
     </script>
     <script type="importmap">
 {
@@ -62,7 +62,7 @@
 </head>
 <body>
     <div id="root"></div>
-    <button id="force-start" onclick="location.reload()">加载过慢？点击刷新页面</button>
+    <div id="error-overlay"></div>
     <script type="module" src="index.tsx"></script>
 </body>
 </html>
