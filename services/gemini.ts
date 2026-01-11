@@ -4,7 +4,9 @@ import { FestivalType, TargetAudience } from "../types.ts";
 
 export class GeminiService {
   private static getAiClient() {
-    return new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+    // 确保 process.env 存在，即使在没有注入的环境中也不崩溃
+    const apiKey = (window as any).process?.env?.API_KEY || (typeof process !== 'undefined' ? process.env.API_KEY : '') || '';
+    return new GoogleGenAI({ apiKey });
   }
 
   static async generateGreeting(festival: FestivalType, audience: TargetAudience, keywords: string): Promise<string> {
@@ -177,7 +179,7 @@ export class GeminiService {
       operation = await ai.operations.getVideosOperation({ operation: operation });
     }
     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-    const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+    const response = await fetch(`${downloadLink}&key=${(window as any).process?.env?.API_KEY || ''}`);
     const blob = await response.blob();
     return URL.createObjectURL(blob);
   }
