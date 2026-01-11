@@ -12,15 +12,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Noto Sans SC', sans-serif; background-color: #f8fafc; margin: 0; }
-        #error-display {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            background: #fee2e2; color: #b91c1c;
-            padding: 1rem; z-index: 10000;
-            font-size: 13px; border-bottom: 2px solid #ef4444;
-            text-align: center;
-        }
         #loading-indicator {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             height: 100vh; width: 100vw; position: fixed; top: 0; left: 0;
@@ -29,26 +20,17 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
     <script>
-        // 初始化基础环境
         window.process = { env: { API_KEY: "" }, nextTick: (cb) => setTimeout(cb, 0), browser: true };
 
-        window.showError = (msg) => {
-            const display = document.getElementById('error-display');
-            if (display) {
-                display.style.display = 'block';
-                display.innerText = msg;
+        // 逃生机制：如果 5 秒后还没加载成功，强制关闭加载屏
+        setTimeout(() => {
+            const loading = document.getElementById('loading-indicator');
+            if (loading && loading.style.display !== 'none') {
+                console.warn('Loading timeout - forcing app visibility');
+                loading.style.opacity = '0';
+                setTimeout(() => { loading.style.display = 'none'; }, 500);
             }
-        };
-
-        // 全局捕获异常，但忽略一些无关紧要的插件错误
-        window.onerror = (msg) => {
-            if (msg.includes('extension') || msg.includes('ResizeObserver')) return false;
-            // 仅在 root 为空时显示，防止应用正常运行时弹出错误
-            if (!document.getElementById('root')?.innerHTML) {
-                window.showError("应用启动中遇到问题: " + msg);
-            }
-            return false;
-        };
+        }, 5000);
     </script>
     <script type="importmap">
 {
@@ -64,13 +46,11 @@
 </script>
 </head>
 <body>
-    <div id="error-display"></div>
     <div id="loading-indicator">
         <div style="width: 40px; height: 40px; border: 3px solid #f1f5f9; border-top: 3px solid #dc2626; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-        <p style="margin-top: 1rem; font-size: 14px; color: #64748b;">正在加载 AI 引擎...</p>
+        <p style="margin-top: 1rem; font-size: 14px; color: #64748b; font-weight: 500;">正在加载 AI 祝福引擎...</p>
     </div>
     <div id="root"></div>
-    <!-- 移除 onerror 属性，由 index.tsx 内部逻辑接管状态 -->
     <script type="module" src="index.tsx"></script>
 </body>
 </html>
